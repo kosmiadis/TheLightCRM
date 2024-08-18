@@ -5,7 +5,7 @@ import WorkInformation from './ProfileCard/WorkInformation';
 import AccountActivity from './ProfileCard/AccountActivity/AccountActivity';
 
 export default function ProfileCard ({user}) {
-    return (<div className="flex flex-col gap-4">
+    return (<div className="flex flex-col gap-8">
         <Card className="w-full">
           <CardBody>
             <AccountInformation user={user}/>
