@@ -2,6 +2,7 @@ import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, Navba
 import { NavLink } from "react-router-dom";
 import { useState, useContext } from 'react';
 import { ThemeCtx } from '../Contexts/ThemeContext';
+import { BoxIconElement } from  'boxicons';
 
 const MENU_ITEMS = [
     {text: 'Home', to: '/'},
@@ -12,7 +13,7 @@ const MENU_ITEMS = [
 
 function NavbarLink ({to, shouldIndicateActive=true, children, ...props}) {
     return <NavLink to={to} className={({isActive}) => {
-        let cssClasses = 'text-xl pb-[4px] hover:text-blue-500 hover:border-b-2 hover:border-b-blue-500'
+        let cssClasses = 'font-bold text-xl pb-[4px] hover:text-blue-500 hover:border-b-2 hover:border-b-blue-500'
         if (isActive && shouldIndicateActive) {
             cssClasses += ' text-blue-700 border-b-medium border-blue-500'
         }
@@ -60,7 +61,7 @@ export default function RootNavigation () {
         className="sm:hidden"
       />
       <NavbarBrand>
-        <NavbarLink to={MENU_ITEMS[0].to} shouldIndicateActive={false} className='font-bold text-2xl hover:text-blue-700'>TheLightCRM</NavbarLink>
+        <NavbarLink to={MENU_ITEMS[0].to} shouldIndicateActive={false} className='font-bold text-2xl hover:text-blue-700'>TheLightCRM⚡</NavbarLink>
       </NavbarBrand>
     </NavbarContent>
 

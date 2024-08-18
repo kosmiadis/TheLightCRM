@@ -1,95 +1,50 @@
-import { Button } from '@nextui-org/react';
-import { Accordion, AccordionItem } from "@nextui-org/react";
-import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthCtx } from '../Contexts/AuthContext';
-
-function HeroSection () {
-    return <section className="text-center mt-[50px]">
-        <h1 className="text-4xl font-extrabold my-8">TheLightCRM</h1>
-        <p className="text-lg">An <span className='font-bold text-xl'>Easy-to-Use</span> <span className='text-xl'>CRM</span> for basic customers operations.</p>
-        <p className="text-lg">The best part, is <span className="font-bold italic">100% free</span> :)</p>
-    </section>
-}
-
-function AuthSection () {
-    const { loggedAccount, loggedAccountDispatch } = useContext(AuthCtx);
-    const navigate = useNavigate();
-
-    function handleClick (identifier) {
-        if (identifier === 'login') {
-            navigate('/login');
-        }
-        else if (identifier === 'signup') {
-            navigate('/signup');
-        }
-        else if (identifier === 'customers') {
-            navigate('/customers');
-        }
-        else if (identifier === 'agreements') {
-            navigate('/agreements');
-        }
-    }
-    
-    return <section className="flex flex-col gap-4 text-center mt-8">
-        {!loggedAccount.account.isLoggedIn && (<>
-            <h2><span className='font-semibold text-lg'>Login</span> or <span className='font-semibold text-xl'>Create an Account</span></h2>
-            <div className="flex gap-4 justify-center">
-                <Button onClick={() => handleClick('login')} size='lg' variant='ghost' color='primary' className='font-bold'>Login</Button>
-                <Button onClick={() => handleClick('signup')} size='lg' variant='ghost' color='primary' className='font-bold'>SignUp</Button>
-            </div>
-        </>
-        )}
-        {loggedAccount.account.isLoggedIn && (<>
-            <h2 className='text-[20px]'>Start Using TheLightCRM!</h2>
-            <p className='m-0 text-[16px]'>Logged In as <span className='font-bold text-[18px] italic'>{loggedAccount.account.email}</span></p>
-            <div className="flex gap-4 justify-center">
-                <Button onClick={() => handleClick('customers')} size='lg' variant='ghost' color='primary' className='font-bold'>Customers</Button>
-                <Button onClick={() => handleClick('agreements')} size='lg' variant='ghost' color='primary' className='font-bold'>Agreements</Button>
-            </div>
-        </>)}
-    </section>
-}
-
-function AccordionSection () {
-    const faqData = [
-        {
-          title: 'What is a CRM?',
-          text: 'A CRM (Customer Relationship Management) system is software designed to help businesses manage customer interactions, track sales, and streamline processes.'
-        },
-        {
-          title: 'Why do businesses need a CRM?',
-          text: 'CRMs centralize customer data, making it easier to track interactions, manage leads, and improve customer service, ultimately increasing sales and customer satisfaction.'
-        },
-        {
-          title: 'What are the key features of a CRM?',
-          text: 'Key features of a CRM include contact management, sales tracking, email marketing, reporting, and analytics. Advanced CRMs may also offer automation and AI-driven insights.'
-        },
-        {
-          title: 'How can a CRM improve customer relationships?',
-          text: 'A CRM helps businesses better understand customer needs by tracking interactions and preferences, allowing for more personalized and timely communication.'
-        }
-    ];
-
-    return <section className="mt-8 mb-12">
-        <h2 className="text-4xl font-bold underline mb-6">FAQ's</h2>
-        <Accordion className="w-full flex flex-col gap-2" variant="splitted">
-           {faqData.map(question => (
-            <AccordionItem size='lg' key={question.title} aria-label={question.title} title={question.title}>
-                <article className='p-4 pl-0 pt-0'>
-                    <p className='text-[16px]'>{question.text}</p>
-                </article>
-            </AccordionItem>
-           ))}
-        </Accordion>
-    </section>
-}
+import { useLoaderData, json } from 'react-router-dom';
+import { get_Cookie, auth_token_identifier } from '../util/cookies';
+import HeroSection from '../components/HomePage/HeroSection';
+import AuthSection from "../components/HomePage/Auth";
+import AccordionSection from '../components/HomePage/AccordionSection';
 
 export default function HomePage () {
+    
+    const authResponse = useLoaderData();
 
     return <>
         <HeroSection />
-        <AuthSection />
+        {/*
+            This section needs to check whether the user is logged in or not to display the
+            corresponding home page section. It is either an auth section, or an actions section
+            depending if the user is logged in or not correspondingly.
+        */}
+            <AuthSection auth={authResponse} /> 
+        {/*End of section that needs to check user auth*/}
         <AccordionSection />
     </>
+}
+
+export async function homePageLoader () {
+    const auth_token = get_Cookie(auth_token_identifier);
+    
+    if (auth_token) {
+        const response = await fetch('https://dummyjson.com/user/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${auth_token}`, 
+          }, 
+        })
+
+        if (!response.ok) {
+            return json({isLoggedIn: false, userEmail: undefined})
+        }
+
+        const user = await response.json();
+        if (user) {
+            return json({isLoggedIn: true, userEmail: user.email})
+        }
+        else { 
+            return json({isLoggedIn: false, userEmail: undefined})
+        }
+    }
+    else {
+        return json({isLoggedIn: false, userEmail: undefined})
+    }
 }

@@ -1,5 +1,6 @@
 import { Form, json, useActionData, useNavigate, useNavigation, redirect } from "react-router-dom"
 import { Button, Input } from "@nextui-org/react";
+import { set_Cookie, auth_token_identifier } from '../util/cookies';
 
 export default function LoginPage () {
     const navigate = useNavigate();
@@ -7,21 +8,23 @@ export default function LoginPage () {
     const errors = useActionData();
     const isSubmitting = navigation.state === 'submitting';
 
+
+
     function handleSignUp () {
         navigate('/signup');
     }
 
     return <>
-            <h1 className="mx-auto min-w-[350px] max-w-[350px] text-3xl mb-4 font-bold">Login</h1>
-            <Form method='POST' className="mx-auto min-w-[350px] max-w-[350px] flex flex-col gap-4">
-                <Input type="text" name='username' size="lg" label="Username" />
-                <Input type="password" name='password' size="lg" label="Password" />
-                {errors && <p className="text-md pl-2 mb-2 text-red-500">{errors.message}</p>}
-                <div className="flex gap-2 self-end">
-                    <Button variant={isSubmitting ? 'light' : 'faded'} color='primary' type='button' onClick={handleSignUp} disabled={isSubmitting}>SignUp</Button>
-                    <Button variant="ghost" color='primary' type='submit' className="w-min text-nowrap self-end text-blue-600" isLoading={isSubmitting}>Login</Button>
-                </div>
-            </Form>
+        <h1 className="mx-auto min-w-[350px] max-w-[350px] text-3xl mb-4 font-bold">Login</h1>
+        <Form method='POST' className="mx-auto min-w-[350px] max-w-[350px] flex flex-col gap-4">
+            <Input type="text" name='username' size="lg" label="Username" />
+            <Input type="password" name='password' size="lg" label="Password" />
+            {errors && <p className="text-md pl-2 mb-2 text-red-500">{errors.message}</p>}
+            <div className="flex gap-2 self-end">
+                <Button variant={isSubmitting ? 'light' : 'faded'} color='primary' type='button' onClick={handleSignUp} disabled={isSubmitting}>SignUp</Button>
+                <Button variant="ghost" color='primary' type='submit' className="w-min text-nowrap self-end text-blue-600" isLoading={isSubmitting}>Login</Button>
+            </div>
+        </Form>
     </>
 }
 
@@ -51,8 +54,8 @@ export async function loginAction ({params, request}) {
 
         else {
             const resData = await response.json();
-            localStorage.setItem('token', resData.token);
-            return redirect("/profile");
+            set_Cookie(auth_token_identifier, resData.token); //setting the auth_token cookie.
+            return redirect("/profile"); //after login redirect the user to their profile.
         }
     } catch (e) {
         return json({message: 'Invalid Credentials!'}, {status: 400})

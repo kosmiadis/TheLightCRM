@@ -1,7 +1,7 @@
 import { createBrowserRouter, redirect, RouterProvider, json } from "react-router-dom"
 import ErrorPage from './pages/ErrorPage';
 import RootLayout from './layouts/RootLayout';
-import HomePage from "./pages/HomePage";
+import HomePage, { homePageLoader } from "./pages/HomePage";
 import ProfilePage from './pages/ProfilePage';
 import CustomersPage from './pages/CustomersPage';
 import AgreementsPage from './pages/AgreementsPage';
@@ -10,12 +10,17 @@ import { ThemeCtx } from "./Contexts/ThemeContext";
 import LoginPage, { loginAction } from "./pages/LoginPage";
 import SignUpPage, { signUpAction } from "./pages/SignUpPage";
 
+
+//COOKIES
+import { CookiesProvider } from 'react-cookie'
+import { get_Cookie, remove_Cookie, auth_token_identifier } from "./util/cookies";
+
 export default function App() {
   const { theme } = useContext(ThemeCtx)
 
   const router = createBrowserRouter([
     {path: '/', element: <RootLayout />, children: [
-      {index: true, element: <HomePage />},
+      {index: true, element: <HomePage />, loader: homePageLoader},
       {path: 'profile', element: <ProfilePage />, loader: authLoader},
       {path: 'customers', element: <CustomersPage />, loader: authLoader},
       {path: 'agreements', element: <AgreementsPage />, loader: authLoader},
@@ -27,14 +32,16 @@ export default function App() {
   ])
   return (
     <main className={`${theme} text-foreground bg-background min-h-screen`}>
-      <RouterProvider router={router}></RouterProvider>
+      <CookiesProvider>
+        <RouterProvider router={router}></RouterProvider>
+      </CookiesProvider>
     </main>
   )
 }
 
 
 async function authLoader() {
-  const token = localStorage.getItem('token');
+  const token = get_Cookie(auth_token_identifier);
 
   if (token) {
     const response = await fetch('https://dummyjson.com/user/me', {
@@ -45,7 +52,7 @@ async function authLoader() {
     });
 
     if (!response.ok) {
-      localStorage.removeItem('token')
+      remove_Cookie(auth_token_identifier); //remove the cookie if something went wrong
       return redirect('/login');
     }
 
@@ -54,7 +61,7 @@ async function authLoader() {
       return json({...user}, {status: 200});
     }
     else {
-      localStorage.removeItem('token')
+      remove_Cookie(auth_token_identifier); //remove the cookie if it is not verified upon server request.
       return redirect('/login');
     }
     
